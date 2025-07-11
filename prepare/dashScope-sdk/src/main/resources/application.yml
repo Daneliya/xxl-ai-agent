@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: dashScope-sdk-demo
+agent-key:
+  dashscope: # API-KEY

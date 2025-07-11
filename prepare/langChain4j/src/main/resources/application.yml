@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: langChain4j-ai-demo
+agent-key:
+  langchain4j: # API-KEY
