@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: alibaba-ai-demo
+  ai:
+    dashscope:
+      api-key: sk-e9add5896dd84ba49d0f142dab6383d9 # API-KEY
+      chat:
+        options:
+          model: deepseek-r1   # 模型名称
+  # redis 配置
+  redis:
+    port: 6379
+    host: localhost
+    database: 0
+
+#  功能扩展
+extend:
+  # 自定义 Advisor
+  advisor:
+  # 对话记忆持久化
+  memory:
