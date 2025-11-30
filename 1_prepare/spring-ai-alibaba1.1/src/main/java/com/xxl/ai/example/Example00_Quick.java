@@ -1,4 +1,4 @@
-package com.xxl.ai.controller;
+package com.xxl.ai.example;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
@@ -9,6 +9,9 @@ import com.alibaba.cloud.ai.graph.agent.hook.hip.HumanInTheLoopHook;
 import com.alibaba.cloud.ai.graph.agent.hook.hip.ToolConfig;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
+import com.xxl.ai.interceptor.DynamicPromptInterceptor;
+import com.xxl.ai.interceptor.ToolErrorInterceptor;
+import com.xxl.ai.tool.SearchTool;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatModel;
@@ -25,17 +28,23 @@ import java.util.function.BiFunction;
  * @Author xxl
  * @Date 2025/11/28 11:45
  */
-public class AgentExample {
+public class Example00_Quick {
 
     public static void main(String[] args) throws GraphRunnerException {
 //        simpleModelConfiguration();
 //        basicModelConfiguration();
+        // 工具组件——搜索工具
+//        toolSearchModelConfiguration();
+        // 动态 System Prompt
+        systemPromptModelConfiguration();
+        // 工具组件——工具错误处理
+//        toolErrorModelConfiguration();
         // 高级功能——使用 outputSchema 定义输出格式
 //        advancedFeatureOutputSchema();
         // 高级功能——使用 invoke 方法获取完整状态
 //        advancedFeatureInvoke();
         // 高级功能——使用 Hooks 扩展功能
-        advancedFeatureHooks();
+//        advancedFeatureHooks();
     }
 
     /**
@@ -106,6 +115,83 @@ public class AgentExample {
 
     public static void realbasicModelConfiguration() {
 
+    }
+
+    /**
+     * 工具组件——搜索工具
+     *
+     * @throws GraphRunnerException 异常
+     */
+    public static void toolSearchModelConfiguration() throws GraphRunnerException {
+        // 创建模型实例
+        DashScopeApi dashScopeApi = DashScopeApi.builder()
+                .apiKey(System.getenv("AI_DASHSCOPE_API_KEY"))
+                .build();
+        ChatModel chatModel = DashScopeChatModel.builder()
+                .dashScopeApi(dashScopeApi)
+                .build();
+        // 创建工具回调
+        ToolCallback searchTool = FunctionToolCallback.builder("search", new SearchTool())
+                .description("搜索工具")
+                .inputType(String.class)
+                .build();
+        // 创建 Agent
+        ReactAgent agent = ReactAgent.builder()
+                .name("search_agent")
+                .model(chatModel)
+                .tools(searchTool)
+                .build();
+        // 运行 Agent
+        AssistantMessage response = agent.call("查询杭州天气并推荐活动");
+        System.out.println(response.getText());
+    }
+
+    /**
+     * 工具组件——工具错误处理
+     *
+     * @throws GraphRunnerException 异常
+     */
+    public static void toolErrorModelConfiguration() throws GraphRunnerException {
+        // 创建模型实例
+        DashScopeApi dashScopeApi = DashScopeApi.builder()
+                .apiKey(System.getenv("AI_DASHSCOPE_API_KEY"))
+                .build();
+        ChatModel chatModel = DashScopeChatModel.builder()
+                .dashScopeApi(dashScopeApi)
+                .build();
+        // 创建 Agent
+        ReactAgent agent = ReactAgent.builder()
+                .name("error_agent")
+                .model(chatModel)
+                .interceptors(new ToolErrorInterceptor())
+                .build();
+        // 运行 Agent
+        AssistantMessage response = agent.call("Who are you?");
+        System.out.println(response.getText());
+    }
+
+    /**
+     * 动态 System Prompt
+     *
+     * @throws GraphRunnerException 异常
+     */
+    public static void systemPromptModelConfiguration() throws GraphRunnerException {
+        // 创建模型实例
+        DashScopeApi dashScopeApi = DashScopeApi.builder()
+                .apiKey(System.getenv("AI_DASHSCOPE_API_KEY"))
+                .build();
+        ChatModel chatModel = DashScopeChatModel.builder()
+                .dashScopeApi(dashScopeApi)
+                .build();
+        // 创建 Agent
+        ReactAgent agent = ReactAgent.builder()
+                .name("adaptive_agent")
+                .model(chatModel)
+                .interceptors(new DynamicPromptInterceptor())
+                .build();
+        // 运行 Agent
+        AssistantMessage response = agent.call("Spring AI Alibaba是个什么框架?");
+        System.out.println(response.getText());
     }
 
     /**
