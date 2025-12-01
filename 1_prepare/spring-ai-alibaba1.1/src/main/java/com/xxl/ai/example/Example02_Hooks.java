@@ -1,4 +1,4 @@
-package com.xxl.ai.controller;
+package com.xxl.ai.example;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
@@ -6,47 +6,31 @@ import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import com.xxl.ai.interceptor.ModelPerformanceInterceptor;
 import com.xxl.ai.interceptor.ToolPerformanceInterceptor;
-import org.springframework.ai.chat.client.ChatClient;
+import com.xxl.ai.tool.SearchTool;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.function.FunctionToolCallback;
 
 /**
- * @Classname ChatController
- * @Description TODO
- * @Date 2025/4/4 23:38
- * @Created by xxl
+ * Hooks 和 Interceptors
+ *
+ * @Author xxl
+ * @Date 2025/12/1 14:50
  */
-@RestController
-public class ChatController {
+public class Example02_Hooks {
 
-    private final ChatClient chatClient;
-
-    public ChatController(ChatClient.Builder builder) {
-        this.chatClient = builder.build();
+    public static void main(String[] args) throws GraphRunnerException {
+        // 性能监控
+        hookPerformanceInterceptors();
     }
 
     /**
-     * 问答接口
+     * 性能监控
      *
-     * @param input 提示词
-     * @return 返回结果
+     * @throws GraphRunnerException
      */
-    @GetMapping("/test")
-    public String test(@RequestParam(value = "input") String input) {
-        return input;
-    }
-
-    /**
-     * 问答接口
-     *
-     * @param input 提示词
-     * @return 返回结果
-     */
-    @GetMapping("/chat")
-    public String chat(@RequestParam(value = "input") String input) throws GraphRunnerException {
+    public static void hookPerformanceInterceptors() throws GraphRunnerException {
         // 初始化 ChatModel
         DashScopeApi dashScopeApi = DashScopeApi.builder()
                 .apiKey(System.getenv("AI_DASHSCOPE_API_KEY"))
@@ -54,17 +38,21 @@ public class ChatController {
         ChatModel chatModel = DashScopeChatModel.builder()
                 .dashScopeApi(dashScopeApi)
                 .build();
+        // 创建工具回调
+        ToolCallback searchTool = FunctionToolCallback.builder("search", new SearchTool())
+                .description("搜索工具")
+                .inputType(String.class)
+                .build();
         // 创建 Agent
         ReactAgent agent = ReactAgent.builder()
                 .name("monitored_agent")
                 .model(chatModel)
-//                .tools(tools)
+                .tools(searchTool)
                 .interceptors(new ModelPerformanceInterceptor())
                 .interceptors(new ToolPerformanceInterceptor())
                 .build();
         // 运行 Agent
         AssistantMessage message = agent.call("坏掉的东西，还能修好。可是坏掉的感情，岂可修吗？");
         System.out.println(message.getText());
-        return message.getText();
     }
 }

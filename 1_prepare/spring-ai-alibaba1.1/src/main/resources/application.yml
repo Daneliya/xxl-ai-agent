@@ -3,7 +3,15 @@ spring:
     name: alibaba-ai-demo
   ai:
     dashscope:
-      api-key: # API-KEY
+#      api-key: 123456 # API-KEY
       chat:
         options:
           model: deepseek-r1   # 模型名称
+  # 配置 ANSI 输出
+  output:
+    ansi:
+      # 有三个可选值：DETECT / ALWAYS / NEVER
+      # DETECT - 检查终端是否支持 ANSI，是的话就启用彩色输出，默认值
+      # ALWAYS - 不检查，总是彩色输出
+      # NEVER - 禁用彩色输出
+      enabled: ALWAYS

@@ -3,21 +3,29 @@ package com.xxl.ai.example;
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
+import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.agent.hook.Hook;
 import com.alibaba.cloud.ai.graph.agent.hook.hip.HumanInTheLoopHook;
 import com.alibaba.cloud.ai.graph.agent.hook.hip.ToolConfig;
+import com.alibaba.cloud.ai.graph.agent.hook.modelcalllimit.ModelCallLimitHook;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
+import com.xxl.ai.hook.CustomStopConditionHook;
 import com.xxl.ai.interceptor.DynamicPromptInterceptor;
+import com.xxl.ai.interceptor.GuardrailInterceptor;
 import com.xxl.ai.interceptor.ToolErrorInterceptor;
+import com.xxl.ai.interceptor.ToolMonitoringInterceptor;
 import com.xxl.ai.output.PoemOutput;
 import com.xxl.ai.tool.SearchTool;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.function.FunctionToolCallback;
+import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 /**
  * Agents 示例
@@ -35,7 +43,7 @@ public class Example01_Agent {
         // 高级模型配置
 //        advancedModelConfiguration();
         // 工具组件——搜索工具
-//        toolSearchModelConfiguration();
+//        toolSearchModelConfigurationtoolSearchModelConfiguration();
         // 工具组件——工具错误处理
 //        toolErrorModelConfiguration();
         // 动态 System Prompt
@@ -45,9 +53,17 @@ public class Example01_Agent {
         // 高级功能——使用 outputSchema 定义输出格式
 //        advancedFeatureOutputSchema();
         // 高级功能——Memory 记忆
-        advancedFeatureMemory();
-        // 高级功能——使用 Hooks 扩展功能
+//        advancedFeatureMemory();
+        // 高级功能——Hooks 钩子
 //        advancedFeatureHooks();
+        // 高级功能——Interceptor 拦截器
+//        advancedFeatureInterceptor();
+        // 高级功能——使用 ModelCallLimitHook 限制模型调用次数
+//        advancedFeatureModelCallLimitHook();
+        // 高级功能——自定义停止条件 Hook
+//        advancedFeatureCustomStopConditionHook();
+        // 高级功能——流式输出
+        advancedFeatureAgentStream();
     }
 
     /**
@@ -268,7 +284,7 @@ public class Example01_Agent {
     }
 
     /**
-     * 高级功能——使用 Hooks 扩展功能
+     * 高级功能——Hooks 钩子
      *
      * @throws GraphRunnerException
      */
@@ -293,5 +309,112 @@ public class Example01_Agent {
                 .build();
         AssistantMessage message = agent.call("帮我写一首关于春天的诗歌。");
         System.out.println(message.getText());
+    }
+
+    /**
+     * 高级功能——Interceptor 拦截器
+     *
+     * @throws GraphRunnerException
+     */
+    public static void advancedFeatureInterceptor() throws GraphRunnerException {
+        // 初始化 ChatModel
+        DashScopeApi dashScopeApi = DashScopeApi.builder()
+                .apiKey(System.getenv("AI_DASHSCOPE_API_KEY"))
+                .build();
+        ChatModel chatModel = DashScopeChatModel.builder()
+                .dashScopeApi(dashScopeApi)
+                .build();
+
+        ReactAgent agent = ReactAgent.builder()
+                .name("my_agent")
+                .model(chatModel)
+                // 内容安全检查、监控和错误处理
+                .interceptors(List.of(new GuardrailInterceptor(), new ToolMonitoringInterceptor()))
+                .saver(new MemorySaver())
+                .build();
+        AssistantMessage message = agent.call("帮我写一首关于春天的诗歌。");
+        System.out.println(message.getText());
+    }
+
+    /**
+     * 高级功能——使用 ModelCallLimitHook 限制模型调用次数
+     *
+     * @throws GraphRunnerException
+     */
+    public static void advancedFeatureModelCallLimitHook() throws GraphRunnerException {
+        // 初始化 ChatModel
+        DashScopeApi dashScopeApi = DashScopeApi.builder()
+                .apiKey(System.getenv("AI_DASHSCOPE_API_KEY"))
+                .build();
+        ChatModel chatModel = DashScopeChatModel.builder()
+                .dashScopeApi(dashScopeApi)
+                .build();
+
+        // 使用内置的 ModelCallLimitHook 限制模型调用次数
+        ReactAgent agent = ReactAgent.builder()
+                .name("my_agent")
+                .model(chatModel)
+                .hooks(ModelCallLimitHook.builder().runLimit(5).build())  // 限制最多调用 5 次
+                .saver(new MemorySaver())
+                .build();
+
+        AssistantMessage message = agent.call("帮我写一首关于春天的诗歌。");
+        System.out.println(message.getText());
+    }
+
+    /**
+     * 高级功能——自定义停止条件 Hook
+     *
+     * @throws GraphRunnerException
+     */
+    public static void advancedFeatureCustomStopConditionHook() throws GraphRunnerException {
+        // 初始化 ChatModel
+        DashScopeApi dashScopeApi = DashScopeApi.builder()
+                .apiKey(System.getenv("AI_DASHSCOPE_API_KEY"))
+                .build();
+        ChatModel chatModel = DashScopeChatModel.builder()
+                .dashScopeApi(dashScopeApi)
+                .build();
+
+        // 使用内置的 ModelCallLimitHook 限制模型调用次数
+        ReactAgent agent = ReactAgent.builder()
+                .name("my_agent")
+                .model(chatModel)
+                .hooks(new CustomStopConditionHook())
+                .saver(new MemorySaver())
+                .build();
+
+        AssistantMessage message = agent.call("帮我写一首关于春天的诗歌。");
+        System.out.println(message.getText());
+    }
+
+    /**
+     * 高级功能——流式输出
+     *
+     * @throws GraphRunnerException
+     */
+    public static void advancedFeatureAgentStream() throws GraphRunnerException {
+        // 初始化 ChatModel
+        DashScopeApi dashScopeApi = DashScopeApi.builder()
+                .apiKey(System.getenv("AI_DASHSCOPE_API_KEY"))
+                .build();
+        ChatModel chatModel = DashScopeChatModel.builder()
+                .dashScopeApi(dashScopeApi)
+                .build();
+
+        // 使用内置的 ModelCallLimitHook 限制模型调用次数
+        ReactAgent agent = ReactAgent.builder()
+                .name("my_agent")
+                .model(chatModel)
+                .hooks(new CustomStopConditionHook())
+                .saver(new MemorySaver())
+                .build();
+
+        Flux<NodeOutput> stream = agent.stream("帮我写一首关于春天的诗歌。");
+        stream.subscribe(
+                response -> System.out.println("进度: " + response),
+                error -> System.err.println("错误: " + error),
+                () -> System.out.println("完成")
+        );
     }
 }
