@@ -1,4 +1,4 @@
-package com.xxl.ai.example;
+package com.xxl.ai.framework.example;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
@@ -9,9 +9,9 @@ import com.alibaba.cloud.ai.graph.agent.hook.hip.HumanInTheLoopHook;
 import com.alibaba.cloud.ai.graph.agent.hook.hip.ToolConfig;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
-import com.xxl.ai.interceptor.DynamicPromptInterceptor;
-import com.xxl.ai.interceptor.ToolErrorInterceptor;
-import com.xxl.ai.tool.SearchTool;
+import com.xxl.ai.framework.interceptor.DynamicPromptInterceptor;
+import com.xxl.ai.framework.interceptor.ToolErrorInterceptor;
+import com.xxl.ai.framework.tool.SearchTool;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatModel;
@@ -31,6 +31,7 @@ import java.util.function.BiFunction;
 public class Example00_Quick {
 
     public static void main(String[] args) throws GraphRunnerException {
+        // 简单的基础模型配置
 //        simpleModelConfiguration();
 //        basicModelConfiguration();
         // 工具组件——搜索工具

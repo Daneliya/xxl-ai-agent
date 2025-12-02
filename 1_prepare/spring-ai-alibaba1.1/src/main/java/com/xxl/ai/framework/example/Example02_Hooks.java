@@ -1,12 +1,12 @@
-package com.xxl.ai.example;
+package com.xxl.ai.framework.example;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
-import com.xxl.ai.interceptor.ModelPerformanceInterceptor;
-import com.xxl.ai.interceptor.ToolPerformanceInterceptor;
-import com.xxl.ai.tool.SearchTool;
+import com.xxl.ai.framework.interceptor.ModelPerformanceInterceptor;
+import com.xxl.ai.framework.interceptor.ToolPerformanceInterceptor;
+import com.xxl.ai.framework.tool.SearchTool;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;

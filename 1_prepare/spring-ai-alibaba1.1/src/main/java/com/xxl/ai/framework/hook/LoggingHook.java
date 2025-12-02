@@ -1,4 +1,4 @@
-package com.xxl.ai.hook;
+package com.xxl.ai.framework.hook;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;

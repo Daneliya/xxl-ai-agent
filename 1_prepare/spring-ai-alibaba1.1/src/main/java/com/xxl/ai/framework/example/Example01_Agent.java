@@ -1,4 +1,4 @@
-package com.xxl.ai.example;
+package com.xxl.ai.framework.example;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
@@ -12,13 +12,13 @@ import com.alibaba.cloud.ai.graph.agent.hook.hip.ToolConfig;
 import com.alibaba.cloud.ai.graph.agent.hook.modelcalllimit.ModelCallLimitHook;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
-import com.xxl.ai.hook.CustomStopConditionHook;
-import com.xxl.ai.interceptor.DynamicPromptInterceptor;
-import com.xxl.ai.interceptor.GuardrailInterceptor;
-import com.xxl.ai.interceptor.ToolErrorInterceptor;
-import com.xxl.ai.interceptor.ToolMonitoringInterceptor;
-import com.xxl.ai.output.PoemOutput;
-import com.xxl.ai.tool.SearchTool;
+import com.xxl.ai.framework.hook.CustomStopConditionHook;
+import com.xxl.ai.framework.interceptor.DynamicPromptInterceptor;
+import com.xxl.ai.framework.interceptor.GuardrailInterceptor;
+import com.xxl.ai.framework.interceptor.ToolErrorInterceptor;
+import com.xxl.ai.framework.interceptor.ToolMonitoringInterceptor;
+import com.xxl.ai.framework.output.PoemOutput;
+import com.xxl.ai.framework.tool.SearchTool;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;

@@ -1,4 +1,4 @@
-package com.xxl.ai.tool;
+package com.xxl.ai.framework.tool;
 
 import org.springframework.ai.chat.model.ToolContext;
 

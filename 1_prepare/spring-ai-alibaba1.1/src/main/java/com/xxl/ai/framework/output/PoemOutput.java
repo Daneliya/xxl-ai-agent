@@ -1,4 +1,4 @@
-package com.xxl.ai.output;
+package com.xxl.ai.framework.output;
 
 /**
  * outputType 输出格式

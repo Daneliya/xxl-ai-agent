@@ -1,4 +1,4 @@
-package com.xxl.ai.hook;
+package com.xxl.ai.framework.hook;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
@@ -12,19 +12,16 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * ModelHook
- * - 在模型调用前后执行（例如：消息修剪），区别于AgentHook，ModelHook在一次agent调用中可能会调用多次，也就是每次 reasoning-acting 迭代都会执行
+ * 自定义记忆 Hook
  *
  * @Author xxl
- * @Date 2025/12/1 08:40
+ * @Date 2025/12/2 11:19
  */
-public class MessageTrimmingHook extends ModelHook {
-
-    private static final int MAX_MESSAGES = 10;
+public class CustomMemoryHook extends ModelHook {
 
     @Override
     public String getName() {
-        return "message_trimming";
+        return "custom_memory";
     }
 
     @Override
@@ -32,17 +29,27 @@ public class MessageTrimmingHook extends ModelHook {
         return new HookPosition[]{HookPosition.BEFORE_MODEL};
     }
 
+    /**
+     * 在 Hook 中访问和修改状态
+     *
+     * @param state
+     * @param config
+     * @return
+     */
     @Override
     public CompletableFuture<Map<String, Object>> beforeModel(OverAllState state, RunnableConfig config) {
+        // 访问消息历史
         Optional<Object> messagesOpt = state.value("messages");
         if (messagesOpt.isPresent()) {
             List<Message> messages = (List<Message>) messagesOpt.get();
-            if (messages.size() > MAX_MESSAGES) {
-                return CompletableFuture.completedFuture(Map.of("messages",
-                        messages.subList(messages.size() - MAX_MESSAGES, messages.size())));
-            }
+            // 处理消息...
         }
-        return CompletableFuture.completedFuture(Map.of());
+
+        // 添加自定义状态
+        return CompletableFuture.completedFuture(Map.of(
+                "user_id", "user_123",
+                "preferences", Map.of("theme", "dark")
+        ));
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.xxl.ai.interceptor;
+package com.xxl.ai.framework.interceptor;
 
 import com.alibaba.cloud.ai.graph.agent.interceptor.ToolCallHandler;
 import com.alibaba.cloud.ai.graph.agent.interceptor.ToolCallRequest;
@@ -19,7 +19,6 @@ public class ToolPerformanceInterceptor extends ToolInterceptor {
         long startTime = System.currentTimeMillis();
 
         System.out.println("执行工具: " + toolName);
-
         try {
             ToolCallResponse response = handler.call(request);
 
