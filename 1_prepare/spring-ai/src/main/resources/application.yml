@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: spring-ai-demo
+  ai:
+    openai:
+      api-key: # API-KEY
+      base-url: # API-URL
+      chat:
+        options:
+          model: deepseek-v3.2   # 模型名称
+logging:
+  level:
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: DEBUG

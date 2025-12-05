@@ -35,7 +35,10 @@ public class ChatController {
      */
     @GetMapping("/test")
     public String test(@RequestParam(value = "input") String input) {
-        return input;
+        return this.chatClient.prompt()
+                .user(input)
+                .call()
+                .content();
     }
 
     /**
