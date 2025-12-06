@@ -47,6 +47,21 @@ public class Example06_Models {
         ChatModel chatModel = DashScopeChatModel.builder()
                 .dashScopeApi(dashScopeApi)
                 .build();
+    }
+
+    /**
+     * 简单调用示例
+     */
+    public static void simpleCellConfiguration() {
+        // 创建 DashScope API 实例
+        DashScopeApi dashScopeApi = DashScopeApi.builder()
+                .apiKey(System.getenv("AI_DASHSCOPE_API_KEY"))
+                .build();
+
+        // 创建 ChatModel
+        ChatModel chatModel = DashScopeChatModel.builder()
+                .dashScopeApi(dashScopeApi)
+                .build();
         // 使用字符串直接调用
         String response = chatModel.call("介绍一下Spring框架");
         System.out.println(response);
