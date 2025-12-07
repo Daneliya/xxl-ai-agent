@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 删除所有消息
+ * ClearAllMessagesHook 删除所有消息
  *
  * @Author xxl
  * @Date 2025/12/2 14:12

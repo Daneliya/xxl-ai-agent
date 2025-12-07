@@ -4,26 +4,28 @@ import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.alibaba.cloud.ai.graph.agent.hook.HookPosition;
 import com.alibaba.cloud.ai.graph.agent.hook.ModelHook;
-import com.alibaba.cloud.ai.graph.state.RemoveByHash;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * MessageDeletionHook 删除消息
- *
- * @Author xxl
- * @Date 2025/12/2 14:12
+ * @Classname ValidateResponseHook
+ * @Description ValidateResponseHook After Model 敏感词工具
+ * @Date 2025/12/7 20:16
+ * @Created by xxl
  */
-public class MessageDeletionHook extends ModelHook {
+public class ValidateResponseHook extends ModelHook {
+
+    private static final List<String> STOP_WORDS =
+            List.of("password", "secret", "api_key");
 
     @Override
     public String getName() {
-        return "message_deletion";
+        return "validate_response";
     }
 
     @Override
@@ -44,13 +46,21 @@ public class MessageDeletionHook extends ModelHook {
         }
 
         List<Message> messages = (List<Message>) messagesOpt.get();
+        if (messages.isEmpty()) {
+            return CompletableFuture.completedFuture(Map.of());
+        }
 
-        if (messages.size() > 2) {
-            // 将最早的两条消息转为 RemoveByHash 对象以便从状态中删除
-            List<Object> removeOldMessages = new ArrayList<>();
-            removeOldMessages.add(RemoveByHash.of(messages.get(0)));
-            removeOldMessages.add(RemoveByHash.of(messages.get(1)));
-            return CompletableFuture.completedFuture(Map.of("messages", removeOldMessages));
+        Message lastMessage = messages.get(messages.size() - 1);
+        String content = lastMessage.getText();
+
+        // 检查是否包含敏感词
+        for (String stopWord : STOP_WORDS) {
+            if (content.toLowerCase().contains(stopWord)) {
+                // 移除包含敏感词的消息
+                List<Message> filtered = messages.subList(0, messages.size() - 1);
+                filtered.add(new AssistantMessage("\n抱歉，我无法提供该信息。\n"));
+                return CompletableFuture.completedFuture(Map.of("messages", filtered));
+            }
         }
 
         return CompletableFuture.completedFuture(Map.of());
