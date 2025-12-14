@@ -10,7 +10,7 @@ import org.springframework.ai.chat.messages.Message;
 import java.util.List;
 
 /**
- * 内容审核
+ * 内容审核 Interceptor
  *
  * @Author xxl
  * @Date 2025/12/1 15:18
@@ -18,7 +18,7 @@ import java.util.List;
 public class ContentModerationInterceptor extends ModelInterceptor {
 
     private static final List<String> BLOCKED_WORDS =
-            List.of("敏感词1", "敏感词2", "敏感词3");
+            List.of("敏感词1", "敏感词2", "敏感词3", "女朋友");
 
     @Override
     public ModelResponse interceptModel(ModelRequest request, ModelCallHandler handler) {
