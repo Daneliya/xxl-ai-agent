@@ -11,6 +11,7 @@ import com.xxl.arms.mapper.ArmsLogMapper;
 import com.xxl.arms.service.ArmsLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 操作日志业务服务实现类
@@ -34,6 +36,21 @@ public class ArmsLogServiceImpl extends ServiceImpl<ArmsLogMapper, ArmsLog> impl
 
     @Autowired
     private ArmsLogMapper armsLogMapper;
+
+    /**
+     * Redis模板
+     * 用于操作Redis缓存
+     */
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * 构造方法
+     *
+     * @param redisTemplate Redis模板
+     */
+    public ArmsLogServiceImpl(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     /**
      * 创建新的操作日志记录
@@ -73,6 +90,49 @@ public class ArmsLogServiceImpl extends ServiceImpl<ArmsLogMapper, ArmsLog> impl
     @Transactional(readOnly = true)
     public Optional<ArmsLog> findById(Long id) {
         log.debug("根据主键ID查找操作日志: {}", id);
+
+        String cacheKey = CACHE_KEY_ARMS_LOG + id;
+
+        try {
+            // 1. 先从Redis缓存中查询
+            Object cachedObj = redisTemplate.opsForValue().get(cacheKey);
+            if (cachedObj != null) {
+                log.debug("从Redis缓存中获取操作日志，ID: {}", id);
+                if (cachedObj instanceof ArmsLog) {
+                    return Optional.of((ArmsLog) cachedObj);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("从Redis缓存获取操作日志失败，ID: {}, 错误: {}", id, e.getMessage());
+        }
+
+        // 2. 缓存未命中，从数据库查询
+        log.debug("缓存未命中，从数据库查询操作日志，ID: {}", id);
+        Optional<ArmsLog> result = findByIdFromDb(id);
+
+        // 3. 将查询结果写入缓存
+        result.ifPresent(armsLog -> {
+            try {
+                redisTemplate.opsForValue().set(cacheKey, armsLog, CACHE_EXPIRE_SECONDS, TimeUnit.SECONDS);
+                log.debug("将操作日志写入Redis缓存，ID: {}", id);
+            } catch (Exception e) {
+                log.warn("将操作日志写入Redis缓存失败，ID: {}, 错误: {}", id, e.getMessage());
+            }
+        });
+
+        return result;
+    }
+
+    /**
+     * 根据主键ID查找操作日志记录（强制从数据库查询）
+     *
+     * @param id 操作日志的主键ID
+     * @return 返回包含操作日志信息的Optional对象，如果记录不存在则返回空的Optional
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ArmsLog> findByIdFromDb(Long id) {
+        log.debug("从数据库查询操作日志，ID: {}", id);
         ArmsLog armsLog = this.getById(id);
         return Optional.ofNullable(armsLog);
     }
@@ -110,6 +170,15 @@ public class ArmsLogServiceImpl extends ServiceImpl<ArmsLogMapper, ArmsLog> impl
             throw new RuntimeException("更新操作日志失败，主键ID: " + updateDTO.getId());
         }
 
+        // 清除缓存
+        String cacheKey = CACHE_KEY_ARMS_LOG + updateDTO.getId();
+        try {
+            redisTemplate.delete(cacheKey);
+            log.debug("清除操作日志缓存，ID: {}", updateDTO.getId());
+        } catch (Exception e) {
+            log.warn("清除操作日志缓存失败，ID: {}, 错误: {}", updateDTO.getId(), e.getMessage());
+        }
+
         log.info("操作日志更新成功，主键ID: {}", updateDTO.getId());
         return existingLog;
     }
@@ -133,6 +202,14 @@ public class ArmsLogServiceImpl extends ServiceImpl<ArmsLogMapper, ArmsLog> impl
 
         boolean deleted = this.removeById(id);
         if (deleted) {
+            // 清除缓存
+            String cacheKey = CACHE_KEY_ARMS_LOG + id;
+            try {
+                redisTemplate.delete(cacheKey);
+                log.debug("清除操作日志缓存，ID: {}", id);
+            } catch (Exception e) {
+                log.warn("清除操作日志缓存失败，ID: {}, 错误: {}", id, e.getMessage());
+            }
             log.info("操作日志删除成功，主键ID: {}", id);
             return true;
         } else {

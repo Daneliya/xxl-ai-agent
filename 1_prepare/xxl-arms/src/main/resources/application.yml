@@ -39,3 +39,13 @@ logging:
 #mybatis-flex:
 #  mapper-locations:
 #    - classpath*: /mybatis/mapper/*.xml
+
+# Actuator 配置，暴露监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
