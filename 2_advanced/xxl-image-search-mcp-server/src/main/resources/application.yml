@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: xxl-image-search-mcp-client
+  profiles:
+    active: stdio
+server:
+  port: 8127

@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/username/Desktop",
+        "/Users/username/Downloads"
+      ]
+    },
+    "xxl-image-search-mcp-server": {
+      "command": "java",
+      "args": [
+        "-Dspring.ai.mcp.server.stdio=true",
+        "-Dspring.main.web-application-type=none",
+        "-Dlogging.pattern.console=",
+        "-jar",
+        "xxl-image-search-mcp-server/target/xxl-image-search-mcp-server-1.0.0.jar"
+      ],
+      "env": {}
+    }
+  }
+}

@@ -34,13 +34,13 @@ public class RedisChatMemory implements ChatMemory {
     }
 
     @Override
-    public List<Message> get(String conversationId, int lastN) {
-        String key = REDIS_KEY_PREFIX + conversationId;
-        // 从 Redis 获取最新的 lastN 条消息
-        List<Message> serializedMessages = (List) redisTemplate.opsForList().range(key, -lastN, -1);
-        if (serializedMessages != null) {
-            return serializedMessages;
-        }
+    public List<Message> get(String conversationId) {
+//        String key = REDIS_KEY_PREFIX + conversationId;
+//        // 从 Redis 获取最新的 lastN 条消息
+//        List<Message> serializedMessages = (List) redisTemplate.opsForList().range(key, -lastN, -1);
+//        if (serializedMessages != null) {
+//            return serializedMessages;
+//        }
         return List.of();
     }
 

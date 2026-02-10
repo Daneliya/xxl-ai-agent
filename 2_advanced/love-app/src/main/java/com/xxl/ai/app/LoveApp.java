@@ -1,16 +1,15 @@
 package com.xxl.ai.app;
 
 import com.xxl.ai.advisor.MyLoggerAdvisor;
-import com.xxl.ai.chatmemory.FileBasedChatMemory;
 import com.xxl.ai.chatmemory.RedisChatMemory;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -60,7 +59,7 @@ public class LoveApp {
         chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(chatMemory),
+                        MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         // 自定义日志 Advisor，可按需开启
                         new MyLoggerAdvisor()
                         // 自定义推理增强 Advisor，可按需开启
@@ -145,4 +144,30 @@ public class LoveApp {
         return content;
     }
 
+    // AI 调用 MCP 服务
+
+    @Resource
+    private ToolCallbackProvider toolCallbackProvider;
+
+    /**
+     * AI 恋爱报告功能（调用 MCP 服务）
+     *
+     * @param message
+     * @param chatId
+     * @return
+     */
+    public String doChatWithMcp(String message, String chatId) {
+        ChatResponse chatResponse = chatClient
+                .prompt()
+                .user(message)
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                // 开启日志，便于观察效果
+                .advisors(new MyLoggerAdvisor())
+                .toolCallbacks(toolCallbackProvider)
+                .call()
+                .chatResponse();
+        String content = chatResponse.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
 }

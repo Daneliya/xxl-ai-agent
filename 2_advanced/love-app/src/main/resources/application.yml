@@ -7,11 +7,20 @@ spring:
       chat:
         options:
           model: deepseek-r1   # 模型名称
+    mcp:
+      client:
+#        sse:
+#          connections:
+#            server1:
+#              url: http://localhost:8127
+        stdio:
+         servers-configuration: classpath:mcp-servers.json
   # redis 配置
-  redis:
-    port: 6379
-    host: localhost
-    database: 0
+  data:
+    redis:
+      database: 0
+      host: localhost
+      port: 6379
 
 #  功能扩展
 extend:
