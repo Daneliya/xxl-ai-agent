@@ -1,17 +1,16 @@
 package com.xxl.ai.app;
 
 import com.xxl.ai.advisor.MyLoggerAdvisor;
-import com.xxl.ai.chatmemory.RedisChatMemory;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.tool.ToolCallbackProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -40,8 +39,8 @@ public class LoveApp {
 
     private static final String CHAT_MEMORY_RETRIEVE_SIZE_KEY = "chat_memory_response_size";
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+//    @Autowired
+//    private RedisTemplate<String, Object> redisTemplate;
 
     /**
      * LoveApp 的构造函数
@@ -51,11 +50,15 @@ public class LoveApp {
     public LoveApp(ChatModel dashscopeChatModel) {
         // 初始化基于内存的对话记忆
 //        ChatMemory chatMemory = new InMemoryChatMemory();
+        MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
+                .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                .maxMessages(20)
+                .build();
         // ‍初始化基于文件的对话记忆
 //        String fileDir = System.getProperty("user.dir") + "/chat-memory";
 //        ChatMemory chatMemory = new FileBasedChatMemory(fileDir);
         // ‍初始化基于Redis的对话记忆
-        RedisChatMemory chatMemory = new RedisChatMemory(redisTemplate);
+//        RedisChatMemory chatMemory = new RedisChatMemory(redisTemplate);
         chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
